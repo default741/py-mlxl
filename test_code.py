@@ -1,67 +1,46 @@
-import dash
-import dash_bootstrap_components as dbc
-from dash import html
+# -*- coding: utf-8 -*-
+from dash import Dash, dcc, html
+import time
 
-app = dash.Dash(
-    __name__,
-    suppress_callback_exceptions=True,
-    external_stylesheets=[dbc.themes.MATERIA,
-                          dbc.icons.FONT_AWESOME],
-)
+from dash.dependencies import Input, Output
 
-
-sidebar = html.Div(
-    [
-        html.Div(
-            [
-                html.H2("Auto ML", style={"color": "white"}),
-            ],
-            className="sidebar-header",
-        ),
-        html.Hr(),
-        dbc.Nav(
-            [
-                dbc.NavLink(
-                    [html.I(className="fas fa-home me-2"),
-                     html.Span("Dashboard (Home)")],
-                    href="/",
-                    active="exact",
-                ),
-                dbc.NavLink(
-                    [
-                        html.I(className="fas fa-calendar-alt me-2"),
-                        html.Span("Projects"),
-                    ],
-                    href="/projects",
-                    active="exact",
-                ),
-                dbc.NavLink(
-                    [
-                        html.I(className="fas fa-envelope-open-text me-2"),
-                        html.Span("Datasets"),
-                    ],
-                    href="/datasets",
-                    active="exact",
-                ),
-            ],
-            vertical=True,
-            pills=True,
-        ),
-    ],
-    className="sidebar",
-)
+app = Dash(__name__)
 
 app.layout = html.Div(
-    [
-        sidebar,
+    children=[
+        html.H3("Edit text input to see loading state"),
+        dcc.Input(id="loading-input-1", value='Input triggers local spinner'),
+        dcc.Loading(
+            id="loading-1",
+            type="cube",
+            children=html.Div(id="loading-output-1")
+        ),
         html.Div(
             [
-                dash.page_container
-            ],
-            className="content",
+                dcc.Input(id="loading-input-2",
+                          value='Input triggers nested spinner'),
+                dcc.Loading(
+                    id="loading-2",
+                    children=[html.Div([html.Div(id="loading-output-2")])],
+                    type="circle",
+                )
+            ]
         ),
-    ]
+    ],
 )
 
+
+@app.callback(Output("loading-output-1", "children"), Input("loading-input-1", "value"))
+def input_triggers_spinner(value):
+    time.sleep(1)
+    return value
+
+
+@app.callback(Output("loading-output-2", "children"), Input("loading-input-2", "value"))
+def input_triggers_nested(value):
+    time.sleep(1)
+    return value
+
+
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)

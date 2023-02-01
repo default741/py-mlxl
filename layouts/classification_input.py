@@ -6,6 +6,7 @@ from .sub_components.fs_conf_input import fs_upload_layout, fs_form, fs_data_inf
 from src.dash_utils.utils import UtilityTools
 from src.dash_utils.config_input import dt_conf, ml_config, fs_conf
 from src.data_transform import DataTransform
+from src.feature_selection import FeatureSelection
 
 from server import app
 from hashlib import sha256
@@ -141,6 +142,17 @@ feature_selection_layout = html.Div(
                                     }
                                 ),
 
+                                dbc.Button(
+                                    [
+                                        html.I(
+                                            className='fa-regular fa-file-code'),
+                                        html.Span(
+                                            [' Show Selected Features (JSON)'])
+                                    ], id='fs-show-selected_feat-btn', color='primary', disabled=True, style={
+                                        'margin-top': '15px', 'margin-bottom': '15px', 'width': '100%', 'fontSize': '0.8rem', 'height': 'auto'
+                                    }
+                                ),
+
                                 dbc.Modal(
                                     [
                                         dbc.ModalHeader(dbc.ModalTitle(
@@ -157,6 +169,26 @@ feature_selection_layout = html.Div(
                                         ),
                                     ],
                                     id="fs-modal-body-scroll",
+                                    scrollable=True,
+                                    is_open=False,
+                                ),
+
+                                dbc.Modal(
+                                    [
+                                        dbc.ModalHeader(dbc.ModalTitle(
+                                            "Selected Features")),
+                                        dbc.ModalBody(
+                                            id='fs-show-selected-features-json'),
+                                        dbc.ModalFooter(
+                                            dbc.Button(
+                                                "Close",
+                                                id="fs-close-select-feat-modal",
+                                                className="ms-auto",
+                                                n_clicks=0,
+                                            )
+                                        ),
+                                    ],
+                                    id="fs-show-select-feat-modal",
                                     scrollable=True,
                                     is_open=False,
                                 ),
@@ -194,7 +226,8 @@ accordion = html.Div(
             ),
         ],
         flush=True,
-        start_collapsed=True
+        start_collapsed=True,
+        always_open=True
     ),
 )
 
@@ -478,7 +511,7 @@ def valid_dt_duvc_threshold(drop_unique_value_columns_params):
         State("modal-body-scroll", "is_open")
     ],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_show_dt_conf_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open
@@ -652,22 +685,97 @@ def toggle_corr_feat_dropping(value):
 
         Input('fs-run-method-radio-select', 'value'),
 
-        # Input('data_imputation_params', 'value'),
+        Input('anova_f_value_selection', 'value'),
+        Input('anova_f_value_selection_params', 'value'),
 
-        # Input('feature_scaling', 'value'),
-        # Input('feature_scaling_params', 'value'),
+        Input('mutual_info_classif_selection', 'value'),
+        Input('mutual_info_classif_selection_params', 'value'),
 
-        # Input('feature_transformer', 'value'),
-        # Input('feature_transformer_params', 'value'),
+        Input('logit_selection', 'value'),
+        Input('logit_selection_params', 'value'),
 
-        # Input('dt-outlier-removal-checkbox', 'value'),
-        # Input('dt-contamination-factor-input', 'value')
+        Input('permutation_impt_selection', 'value'),
+        Input('permutation_impt_selection_params', 'value'),
+        Input('permutation_impt_selection_feat_num_params', 'value'),
+
+        Input('recursive_feature_elimination', 'value'),
+        Input('recursive_feature_elimination_params', 'value'),
+        Input('recursive_feature_elimination_feat_num_params', 'value'),
+        Input('recursive_feature_elimination_step_value_params', 'value'),
+
+        Input('model_based_importance', 'value'),
+        Input('model_based_importance_params', 'value'),
+        Input('model_based_importance_feat_num_params', 'value'),
+
+        Input('regularization_selection', 'value'),
+        Input('regularization_selection_params', 'value'),
+        Input('regularization_selection_feat_num_params', 'value'),
+
+        Input('boruta_selection', 'value'),
+        Input('boruta_selection_params', 'value'),
+
+        Input('sequencial_forward_selection', 'value'),
+        Input('sequencial_forward_selection_params', 'value'),
+        Input('sequencial_forward_selection_feat_num_params', 'value'),
+        Input('sequencial_forward_selection_scoring_mertric_params', 'value'),
     ]
 )
 def fs_update_config(
-    save_btn, target_value, test_size, variance_bool, variance_thresh, multi_corr_bool, corr_bool, corr_thresh, corr_method, run_parallel_bool
+    save_btn, target_value, test_size, variance_bool, variance_thresh, multi_corr_bool, corr_bool, corr_thresh, corr_method, run_parallel_bool,
+    anova_f_bool, anova_f_params, mic_bool, mic_params, logit_bool, logit_params, perm_bool, perm_model, perm_feat_num, rfe_bool, rfe_model,
+    rfe_feat_num, rfe_step, mbi_bool, mbo_model, mbi_feat_num, rs_bool, ri_model, ri_feat_num, boruta_bool, boruta_model, sfs_bool, sfs_model,
+    sfs_feat_num, sfs_metric
 ):
     if save_btn:
+        methods_params_dict = {
+            'anova_f_value_selection': anova_f_bool,
+            'mutual_info_classif_selection': mic_bool,
+            'logit_selection': logit_bool,
+            'permutation_impt_selection': perm_bool,
+            'recursive_feature_elimination': rfe_bool,
+            'model_based_importance': mbi_bool,
+            'regularization_selection': rs_bool,
+            'boruta_selection': boruta_bool,
+            'sequencial_forward_selection': sfs_bool,
+        }
+
+        params_dict = {
+            'anova_f_value_selection': {
+                'num_feat': anova_f_params
+            },
+            'mutual_info_classif_selection': {
+                'num_feat': mic_params
+            },
+            'logit_selection': {
+                'fit_method': logit_params if logit_params != 'default' else None
+            },
+            'permutation_impt_selection': {
+                'model_list': perm_model if isinstance(perm_model, list) else [perm_model],
+                'num_feat': perm_feat_num
+            },
+            'recursive_feature_elimination': {
+                'model_list': rfe_model if isinstance(rfe_model, list) else [rfe_model],
+                'num_feat': rfe_feat_num,
+                'step_value': rfe_step if rfe_step != 0 else None
+            },
+            'model_based_importance': {
+                'model_list': mbo_model if isinstance(mbo_model, list) else [mbo_model],
+                'num_feat': mbi_feat_num
+            },
+            'regularization_selection': {
+                'model_list': ri_model if isinstance(ri_model, list) else [ri_model],
+                'num_feat': ri_feat_num
+            },
+            'boruta_selection': {
+                'model_list': boruta_model if isinstance(boruta_model, list) else [boruta_model]
+            },
+            'sequencial_forward_selection': {
+                'model_list': sfs_model if isinstance(sfs_model, list) else [sfs_model],
+                'num_feat': sfs_feat_num,
+                'scoring_metric': sfs_metric
+            },
+        }
+
         fs_conf.fs_conf_input['target_feature'] = target_value
         fs_conf.fs_conf_input['test_size'] = test_size
 
@@ -680,6 +788,13 @@ def fs_update_config(
         fs_conf.fs_conf_input['corr_method'] = corr_method
 
         fs_conf.fs_conf_input['run_parallel'] = bool(run_parallel_bool)
+
+        for method_name in fs_conf.selection_methods:
+            if methods_params_dict[method_name]:
+                fs_conf.fs_conf_input['feature_select_conf'].append({
+                    'select_method': f'{method_name}',
+                    'params': params_dict[method_name]
+                })
 
     current_status = f"Feature Selection Details, Status - {ml_config.fs_initial_status}"
 
@@ -719,7 +834,64 @@ def toggle_conf_save_alert(save_conf_bth, save_conf_alert_state):
         State("fs-modal-body-scroll", "is_open")
     ],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_show_fs_conf_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    [
+        Output("fs-run-complete", "is_open"),
+        Output('fs-show-selected_feat-btn', 'disabled'),
+        Output('fs-show-selected-features-json', 'children')
+    ],
+    [
+        Input("run-feature-selection", "n_clicks"),
+    ],
+    [
+        State("fs-run-complete", "is_open")
+    ],
+)
+def toggle_fs_run_started_alert(run_selection_btn, run_status_alert_state):
+    if run_selection_btn:
+        selected_features = FeatureSelection().compile_selection(**fs_conf.fs_conf_input)
+
+        _unique_serial_number = sha256(
+            str(ml_config.dt_serial_number).encode('utf-8')).hexdigest()
+
+        ml_config.dt_serial_number += 1
+        ml_config.dt_current_version += 0.1
+        ml_config.dt_initial_status = 'Run Completed Successfully'
+
+        ml_config.status.loc[len(ml_config.status.index)] = [_unique_serial_number, dt.datetime.now(), ml_config.dt_current_version,
+                                                             'Data Transformation', json.dumps(dt_conf.dt_conf_input), ml_config.dt_initial_status]
+
+        print(ml_config.status)
+
+        json_output = html.Div(
+            [
+                html.Pre(children=["JSON Config: {}".format(
+                    json.dumps(selected_features, indent=4))])
+            ]
+        )
+
+        return [not run_status_alert_state, False, json_output]
+
+    return [run_status_alert_state, True, html.Div()]
+
+
+@app.callback(
+    Output("fs-show-select-feat-modal", "is_open"),
+    [
+        Input("fs-show-selected_feat-btn", "n_clicks"),
+        Input("fs-close-select-feat-modal", "n_clicks"),
+    ],
+    [
+        State("fs-show-select-feat-modal", "is_open")
+    ],
+)
+def toggle_show_fs_conf_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open

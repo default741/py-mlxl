@@ -142,7 +142,7 @@ alert_tab_layout = html.Div(
                     "Data Transformation Pipeline Run Complete!",
                     id="dt-run-complete", is_open=False, duration=2000,
                 ),
-            ], id="ls-loading-2", type="circle", style={'margin-top': '5px', 'margin-botttom': '5px'}
+            ], id="ls-loading-2", type="cube", fullscreen=True, style={'margin-top': '5px', 'margin-botttom': '5px'}
         ),
 
 

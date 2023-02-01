@@ -147,8 +147,36 @@ class FeatureSelectionConfig:
             'pearson', 'kendall', 'spearman'
         ]
 
-        self._model_list = [
+        self._logit_fit_methods = [
+            'default', 'newton', 'bfgs', 'lbfgs', 'powell', 'cg', 'ncg', 'basinhopping'
+        ]
 
+        self._perm_impt_model_list = [
+            'random_forest', 'catboost', 'xgboost', 'lightgbm', 'gradient_boosting', 'logistic_regression', 'all'
+        ]
+
+        self._rfe_model_list = [
+            'random_forest', 'catboost', 'xgboost', 'lightgbm', 'gradient_boosting', 'logistic_regression', 'all'
+        ]
+
+        self._model_based_impt_model_list = [
+            'random_forest', 'catboost', 'xgboost', 'lightgbm', 'all'
+        ]
+
+        self._reg_based_model_list = [
+            'lasso', 'ridge', 'elasticnet', 'all'
+        ]
+
+        self._boruta_model_list = [
+            'random_forest', 'xgboost', 'lightgbm', 'gradient_boosting', 'all'
+        ]
+
+        self._sfs_model_list = [
+            'random_forest', 'xgboost', 'lightgbm', 'gradient_boosting', 'all'
+        ]
+
+        self._sfs_scoring_metrics = [
+            'accuracy', 'roc_auc', 'precision', 'recall', 'f1'
         ]
 
         self.fs_conf_input: dict = {
@@ -188,6 +216,38 @@ class FeatureSelectionConfig:
     @property
     def correlation_methods(self) -> list:
         return self._correlation_methods
+
+    @property
+    def logit_fit_methods(self) -> list:
+        return self._logit_fit_methods
+
+    @property
+    def perm_impt_model_list(self) -> list:
+        return self._perm_impt_model_list
+
+    @property
+    def rfe_model_list(self) -> list:
+        return self._rfe_model_list
+
+    @property
+    def model_based_impt_model_list(self) -> list:
+        return self._model_based_impt_model_list
+
+    @property
+    def reg_based_model_list(self) -> list:
+        return self._reg_based_model_list
+
+    @property
+    def boruta_model_list(self) -> list:
+        return self._boruta_model_list
+
+    @property
+    def sfs_model_list(self) -> list:
+        return self._sfs_model_list
+
+    @property
+    def sfs_scoring_metrics(self) -> list:
+        return self._sfs_scoring_metrics
 
 
 dt_conf = DataTransformConfig()

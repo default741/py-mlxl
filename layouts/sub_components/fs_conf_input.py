@@ -1,8 +1,8 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
+from .fs_method_layout_mapping import method_layout_mapping
 from src.dash_utils.config_input import fs_conf
-
 
 fs_upload_layout = html.Div(
     [
@@ -126,6 +126,8 @@ fs_method_acc_item = [
                         label="Add this Selection Method to Pipeline!",
                         value=False,
                     ),
+
+                    method_layout_mapping[method]
                 ]
             )
         ], title=f"{idx + 1}. {' '.join(list(map(lambda x: x.capitalize(), method.split('_'))))}",
@@ -198,7 +200,7 @@ alert_tab_layout = html.Div(
                     "Data Transformation Pipeline Run Complete!",
                     id="fs-run-complete", is_open=False, duration=2000,
                 ),
-            ], id="fs-ls-loading-2", type="circle", style={'margin-top': '5px', 'margin-botttom': '5px'}
+            ], id="fs-ls-loading-2", type="cube", fullscreen=True, style={'margin-top': '5px', 'margin-botttom': '5px'}
         ),
 
 

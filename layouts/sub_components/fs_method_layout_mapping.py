@@ -17,8 +17,8 @@ class _Selection_Methods:
                             [
                                 dbc.InputGroupText(
                                     "Selected Number of Features:"),
-                                dbc.Input(type="number", placeholder=1, value=0.5,
-                                          id='anova_f_value_selection_params', max=fs_conf.transformed_data.shape[1], min=1, step=1),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='anova_f_value_selection_params', max=30, min=1, step=1),
                             ], className="mb-3",
                         )
                     ]
@@ -37,8 +37,8 @@ class _Selection_Methods:
                             [
                                 dbc.InputGroupText(
                                     "Selected Number of Features:"),
-                                dbc.Input(type="number", placeholder=1, value=0.5,
-                                          id='mutual_info_classif_selection_params', max=fs_conf.transformed_data.shape[1], min=1, step=1),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='mutual_info_classif_selection_params', max=30, min=1, step=1),
                             ], className="mb-3",
                         )
                     ]
@@ -46,82 +46,223 @@ class _Selection_Methods:
             ], style={'margin-top': '5px'}
         )
 
-    # @staticmethod
-    # def get_drop_unique_value_columns_layout():
-    #     return html.Div(
-    #         [
-    #             dbc.Label("Drop Unique Value Columns (Params):"),
-    #             html.Div(
-    #                 [
-    #                     dbc.InputGroup(
-    #                         [
-    #                             dbc.InputGroupText("Unique Value Threshold:"),
-    #                             dbc.Input(type="number", placeholder=1,
-    #                                       value=1, id='drop_unique_value_columns_params', min=0, step=0.1)
-    #                         ], className="mb-3",
-    #                     )
-    #                 ]
-    #             ),
-    #         ], style={'margin-top': '5px'}
-    #     )
+    @staticmethod
+    def get_logit_selection_layout():
+        return html.Div(
+            [
+                dbc.Label("Logit Selection Fit Method (Params):"),
+                dcc.Dropdown(
+                    id='logit_selection_params',
+                    value=list(fs_conf.logit_fit_methods)[0],
+                    multi=False,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.logit_fit_methods)
+                    ],
+                    placeholder='Select Method'
+                ),
+            ], style={'margin-top': '5px'}
+        )
 
-    # @staticmethod
-    # def get_data_imputation_layout():
-    #     return html.Div(
-    #         [
-    #             dbc.Label("Imputation Type (Params):"),
-    #             dcc.Dropdown(
-    #                 id='data_imputation_params',
-    #                 value=list(dt_conf.imputation_methods)[0],
-    #                 multi=False,
-    #                 options=[
-    #                     {'label': method.capitalize(), 'value': method} for method in list(dt_conf.imputation_methods)
-    #                 ],
-    #                 placeholder='Select Method'
-    #             ),
-    #         ], style={'margin-top': '5px'}
-    #     )
+    @staticmethod
+    def get_permutation_impt_selection_layout():
+        return html.Div(
+            [
+                dbc.Label("Permutation Importance Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='permutation_impt_selection_params',
+                    value=list(fs_conf.perm_impt_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.perm_impt_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+                html.Div(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Selected Number of Features:"),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='permutation_impt_selection_feat_num_params', max=30, min=1, step=1),
+                            ], className="mb-3",
+                        )
+                    ], style={'margin-top': '10px'}
+                ),
+            ], style={'margin-top': '5px'}
+        )
 
-    # @staticmethod
-    # def get_feature_scaling_layout():
-    #     return html.Div(
-    #         [
-    #             dbc.Label("Feature Scaling Type (Params):"),
-    #             dcc.Dropdown(
-    #                 id='feature_scaling_params',
-    #                 value=list(dt_conf.feature_scaling_methods)[0],
-    #                 multi=False,
-    #                 options=[
-    #                     {'label': method.capitalize(), 'value': method} for method in list(dt_conf.feature_scaling_methods)
-    #                 ],
-    #                 placeholder='Select Features'
-    #             )
-    #         ], style={'margin-top': '5px'}
-    #     )
+    @staticmethod
+    def get_recursive_feature_elimination_layout():
+        return html.Div(
+            [
+                dbc.Label("Permutation Importance Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='recursive_feature_elimination_params',
+                    value=list(fs_conf.rfe_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.rfe_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+                html.Div(
+                    [
+                        dbc.Label(
+                            "If 0 then Step Value will be determined Heuristically:"),
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Selected Number of Features:"),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='recursive_feature_elimination_feat_num_params', max=30, min=0, step=1),
+                            ], className="mb-3",
+                        )
+                    ]
+                ),
+                html.Div(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Specify Step Value for RFE:"),
+                                dbc.Input(type="number", placeholder=1, value=1,
+                                          id='recursive_feature_elimination_step_value_params', max=30, min=1, step=1),
+                            ], className="mb-3",
+                        )
+                    ]
+                ),
+            ], style={'margin-top': '5px'}
+        )
 
-    # @staticmethod
-    # def get_feature_transformer_layout():
-    #     return html.Div(
-    #         [
-    #             dbc.Label("Feature Transform Type (Params):"),
-    #             dcc.Dropdown(
-    #                 id='feature_transformer_params',
-    #                 value=list(dt_conf.feature_transform_methods)[0],
-    #                 multi=False,
-    #                 options=[
-    #                     {'label': method.capitalize(), 'value': method} for method in list(dt_conf.feature_transform_methods)
-    #                 ],
-    #                 placeholder='Select Features'
-    #             ),
-    #         ], style={'margin-top': '5px'}
-    #     )
+    @staticmethod
+    def get_model_based_importance_layout():
+        return html.Div(
+            [
+                dbc.Label("Model Based Importance Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='model_based_importance_params',
+                    value=list(fs_conf.model_based_impt_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.model_based_impt_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+                html.Div(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Selected Number of Features:"),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='model_based_importance_feat_num_params', max=30, min=1, step=1),
+                            ], className="mb-3",
+                        )
+                    ], style={'margin-top': '10px'}
+                ),
+            ], style={'margin-top': '5px'}
+        )
+
+    @staticmethod
+    def get_regularization_selection_layout():
+        return html.Div(
+            [
+                dbc.Label(
+                    "Regularization Based Selection Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='regularization_selection_params',
+                    value=list(fs_conf.reg_based_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.reg_based_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+                html.Div(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Selected Number of Features:"),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='regularization_selection_feat_num_params', max=30, min=1, step=1),
+                            ], className="mb-3",
+                        )
+                    ], style={'margin-top': '10px'}
+                ),
+            ], style={'margin-top': '5px'}
+        )
+
+    @staticmethod
+    def get_boruta_selection_layout():
+        return html.Div(
+            [
+                dbc.Label(
+                    "Boruta Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='boruta_selection_params',
+                    value=list(fs_conf.boruta_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.boruta_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+            ], style={'margin-top': '5px'}
+        )
+
+    @staticmethod
+    def get_sequencial_forward_selection_layout():
+        return html.Div(
+            [
+                dbc.Label(
+                    "Sequencial Forward Selection Model Selection (Params):"),
+                dcc.Dropdown(
+                    id='sequencial_forward_selection_params',
+                    value=list(fs_conf.sfs_model_list)[0],
+                    multi=True,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.sfs_model_list)
+                    ],
+                    placeholder='Select Method'
+                ),
+                html.Div(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Selected Number of Features:"),
+                                dbc.Input(type="number", placeholder=1, value=15,
+                                          id='sequencial_forward_selection_feat_num_params', max=30, min=1, step=1),
+                            ], className="mb-3",
+                        )
+                    ], style={'margin-top': '10px'}
+                ),
+
+                dbc.Label(
+                    "Sequencial Forward Selection Scoring Metric (Params):"),
+                dcc.Dropdown(
+                    id='sequencial_forward_selection_scoring_mertric_params',
+                    value=list(fs_conf.sfs_scoring_metrics)[0],
+                    multi=False,
+                    options=[
+                        {'label': method.capitalize(), 'value': method} for method in list(fs_conf.sfs_scoring_metrics)
+                    ],
+                    placeholder='Select Method'
+                ),
+            ], style={'margin-top': '5px'}
+        )
 
 
 method_layout_mapping = {
     'anova_f_value_selection': _Selection_Methods.get_anova_f_value_selection_layout(),
     'mutual_info_classif_selection': _Selection_Methods.get_mutual_info_classif_selection_layout(),
-    # 'drop_unique_value_columns': _Selection_Methods.get_drop_unique_value_columns_layout(),
-    # 'data_imputation': _Selection_Methods.get_data_imputation_layout(),
-    # 'feature_scaling': _Selection_Methods.get_feature_scaling_layout(),
-    # 'feature_transformer': _Selection_Methods.get_feature_transformer_layout(),
+    'logit_selection': _Selection_Methods.get_logit_selection_layout(),
+    'permutation_impt_selection': _Selection_Methods.get_permutation_impt_selection_layout(),
+    'recursive_feature_elimination': _Selection_Methods.get_recursive_feature_elimination_layout(),
+    'model_based_importance': _Selection_Methods.get_model_based_importance_layout(),
+    'regularization_selection': _Selection_Methods.get_regularization_selection_layout(),
+    'boruta_selection': _Selection_Methods.get_boruta_selection_layout(),
+    'sequencial_forward_selection': _Selection_Methods.get_sequencial_forward_selection_layout(),
 }
