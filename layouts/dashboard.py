@@ -1,59 +1,90 @@
 from dash import html
 import dash_bootstrap_components as dbc
 
-from src.dash_utils.utils import generate_card_object
+from assets.dash_css.dashboard_css import DASHBOARD_CARD_STYLE
 
 
-card_object_classification = generate_card_object(
-    card_img_src='/assets/images/classification-logo-dashboard.jpeg',
-    card_header=('dashboard-card-header',
-                 'dashboard-card-header-classification'),
-    card_footer=('dashboard-card-footer',
-                 'dashboard-card-footer-classification'),
-    card_title=('Classification', 'card-title', 'card-title-classification'),
-    card_desc=('Classification is the process of predicting the class of given data points.',
-               'card-desc', 'card-desc-classification'),
-    card_btn=('Details', 'primary', '/classification-details',
-              'card-btn', 'card-btn-classification'),
-    card_style={"width": "18rem", 'margin': '2rem', 'border': '5px'}
+card_object_classification = dbc.Card(
+    children=[
+        dbc.CardImg(
+            src='/assets/images/classification-logo-dashboard.jpeg', top=True),
+        dbc.CardBody([
+            dbc.CardHeader(
+                children=[
+                    html.H4(
+                        'Classification', id='card-title-classification'),
+                    html.P(
+                        'Classification is the process of predicting the class of given data points.', id='card-desc-classification')
+                ], id='dashboard-card-header-classification'
+            ),
+
+            dbc.CardFooter(
+                children=[
+                    html.A(dbc.Button(
+                        'More Infomation...', color='secondary'), href='/classification-details', id='card-btn-classification')
+                ], id='dashboard-card-footer-classification'
+            )
+        ])
+    ], style=DASHBOARD_CARD_STYLE
 )
 
-card_object_regression = generate_card_object(
-    card_img_src='/assets/images/classification-logo-dashboard.jpeg',
-    card_header=('dashboard-card-header',
-                 'dashboard-card-header-regression'),
-    card_footer=('dashboard-card-footer',
-                 'dashboard-card-footer-regression'),
-    card_title=('Regression', 'card-title', 'card-title-regression'),
-    card_desc=('Classification is the process of predicting the class of given data points.',
-               'card-desc', 'card-desc-regression'),
-    card_btn=('Details', 'primary', 'https://google.com',
-              'card-btn', 'card-btn-regression'),
-    card_style={"width": "18rem", 'margin': '2rem', 'border': '5px'}
+card_object_regression = dbc.Card(
+    children=[
+        dbc.CardImg(
+            src='/assets/images/classification-logo-dashboard.jpeg', top=True),
+        dbc.CardBody([
+            dbc.CardHeader(
+                children=[
+                    html.H4(
+                        'Regression', id='card-title-regression'),
+                    html.P(
+                        'Classification is the process of predicting the class of given data points.', id='card-desc-regression')
+                ], id='dashboard-card-header-regression'
+            ),
+
+            dbc.CardFooter(
+                children=[
+                    html.A(dbc.Button(
+                        'More Infomation...', color='secondary'), href='/regression-details', id='card-btn-regression')
+                ], id='dashboard-card-footer-regression'
+            )
+        ])
+    ], style=DASHBOARD_CARD_STYLE
 )
 
-card_object_deep_learning = generate_card_object(
-    card_img_src='/assets/images/classification-logo-dashboard.jpeg',
-    card_header=('dashboard-card-header',
-                 'dashboard-card-header-deep-learning'),
-    card_footer=('dashboard-card-footer',
-                 'dashboard-card-footer-deep-learning'),
-    card_title=('Deep Learning', 'card-title', 'card-title-deep-learning'),
-    card_desc=('Classification is the process of predicting the class of given data points.',
-               'card-desc', 'card-desc-deep-learning'),
-    card_btn=('Details', 'primary', 'https://google.com',
-              'card-btn', 'card-btn-deep-learning'),
-    card_style={"width": "18rem", 'margin': '2rem', 'border': '5px'}
+card_object_deep_learning = dbc.Card(
+    children=[
+        dbc.CardImg(
+            src='/assets/images/classification-logo-dashboard.jpeg', top=True),
+        dbc.CardBody([
+            dbc.CardHeader(
+                children=[
+                    html.H4(
+                        'Deep Learning', id='card-title-deep-learning'),
+                    html.P(
+                        'Classification is the process of predicting the class of given data points.', id='card-desc-deep-learning')
+                ], id='dashboard-card-header-deep-learning'
+            ),
+
+            dbc.CardFooter(
+                children=[
+                    html.A(dbc.Button(
+                        'More Infomation...', color='secondary'), href='/deep-learning-details', id='card-btn-deep-learning')
+                ], id='dashboard-card-footer-deep-learning'
+            )
+        ])
+    ], style=DASHBOARD_CARD_STYLE
 )
 
 
-card_object = html.Div(
+ml_categories_card_layout = html.Div(
     dbc.CardGroup(
         [card_object_classification, card_object_regression, card_object_deep_learning]
     )
 )
 
-jumbotron = html.Div(
+
+app_dashboard_title_layout = html.Div(
     dbc.Container(
         [
             html.H1("Jumbotron", className="display-3"),
@@ -78,7 +109,7 @@ jumbotron = html.Div(
 )
 
 
-dashboard_layout = html.Div([
-    jumbotron,
-    card_object
+Dashboard_Layout = html.Div([
+    app_dashboard_title_layout,
+    ml_categories_card_layout
 ])

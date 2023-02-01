@@ -3,7 +3,7 @@ from dash import Input, Output, State, html, dcc
 from .sub_components.dt_conf_input import dt_upload_layout, dt_form, dt_data_info
 from .sub_components.fs_conf_input import fs_upload_layout, fs_form, fs_data_info
 
-from src.dash_utils.utils import parse_contents
+from src.dash_utils.utils import UtilityTools
 from src.dash_utils.config_input import dt_conf, ml_config, fs_conf
 from src.data_transform import DataTransform
 
@@ -35,7 +35,7 @@ data_transform_layout = html.Div(
                                             html.Br(),
                                             html.Span(
                                                 ['Date Uploaded: ', 'NA'])
-                                        ], id='dt-uploaded-file-meta-data', style={'margin-left': '5px'}
+                                        ], id='dt-uploaded-file-meta-data', style={'margin-left': '10px'}
                                     )
                                 ], width=8, style={'border-left': '1px solid black'}),
                             ]
@@ -114,7 +114,7 @@ feature_selection_layout = html.Div(
                                             html.Br(),
                                             html.Span(
                                                 ['Date Uploaded: ', 'NA'])
-                                        ], id='fs-uploaded-file-meta-data', style={'margin-left': '5px'}
+                                        ], id='fs-uploaded-file-meta-data', style={'margin-left': '10px'}
                                     )
                                 ], width=7, style={'border-left': '1px solid black'}),
                             ]
@@ -186,21 +186,53 @@ accordion = html.Div(
                 children=[
                     feature_selection_layout], title=f"Feature Selection Details, Status - {ml_config.dt_initial_status}", id='fs-accordion-title'
             ),
-            # dbc.AccordionItem(
-            #     children=[
-            #         data_transform_layout], title=f"Baseline Modeling Details, Status - {ml_config.dt_initial_status}", id='bm-accordion-title'
-            # ),
+            dbc.AccordionItem(
+                children=[], title=f"Baseline Modeling Details, Status - {ml_config.dt_initial_status}", id='bm-accordion-title'
+            ),
+            dbc.AccordionItem(
+                children=[], title=f"Hyper-Parameter Tuning Details, Status - {ml_config.dt_initial_status}", id='hpt-accordion-title'
+            ),
         ],
         flush=True,
         start_collapsed=True
     ),
 )
 
+classification_heading_jumbotron = html.Div(
+    dbc.Container(
+        [
+            html.H2("Classification XL", className="display-3"),
+            html.P(
+                "Sub-Modules: Data Transformation, Feature Selection, Baseline Modeling, Hyper-Parameter Tuning",
+                className="lead",
+            ),
+            html.Hr(className="my-2"),
+            html.P(
+                "Classification is defined as admitting, understanding, and grouping objects. It classifies the "
+                "datasets into pre-set classes. It is perhaps performed on both structured and unstructured data. "
+                "The process starts with anticipating the class of given points. In classification machine "
+                "learning, algorithms work to classify the data and datasets into respective and relevant categories."
+            )
+        ],
+        fluid=True,
+        className="py-3",
+    ),
+    className="p-3 bg-light rounded-3",
+)
 
-classification_layout = html.Div([
+
+Classification_Layout = html.Div([
     dbc.Container([
         dbc.Row([
-            dbc.Col([accordion], width=12)
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col([classification_heading_jumbotron])
+                ]),
+                dbc.Row([
+                    dbc.Col(
+                        [accordion], width=12)
+                ], style={'margin-top': '32px'})
+            ])
         ])
     ])
 ])
@@ -220,7 +252,7 @@ classification_layout = html.Div([
 )
 def dt_upload_raw_data(file_content, file_name):
     if file_content is not None:
-        return parse_contents(file_content, file_name, 'dt')
+        return UtilityTools.parse_contents(file_content, file_name, 'dt')
 
     default_response_page = html.Div(
         [
@@ -503,7 +535,7 @@ def toggle_dt_run_started_alert(run_transform_btn, run_status_alert_state):
 def download_dt_data(download_btn):
     if download_btn:
         df = pd.read_csv('./data/processed/transformed_data.csv')
-        return dcc.send_data_frame(df.to_csv, filename="some_name.csv", index=False)
+        return dcc.send_data_frame(df.to_csv, filename=f"transformed_data_v{ml_config.dt_serial_number}.csv", index=False)
 
 
 # --------------------------------------------- ## FEATURE SELECTION CALLBACK ## --------------------------------------------- #
@@ -519,7 +551,7 @@ def download_dt_data(download_btn):
 )
 def fs_upload_raw_data(file_content, file_name):
     if file_content is not None:
-        return parse_contents(file_content, file_name, 'fs')
+        return UtilityTools.parse_contents(file_content, file_name, 'fs')
 
     default_response_page = html.Div(
         [

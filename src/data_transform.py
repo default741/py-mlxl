@@ -171,7 +171,7 @@ class _Transform_Pipeline:
             if len(self.custom_columns_list) == 0:
                 return X.reset_index(drop=True)
 
-            if all(feat in list(X.columns) for feat in self.custom_columns_list):
+            if not all(feat in list(X.columns) for feat in self.custom_columns_list):
                 raise TypeError(
                     'Missing Features from Dataframe specified in Custom List.')
 
@@ -581,7 +581,7 @@ class DataTransform:
         """
 
         print('Running Transformation Pipeline -')
-        data = _Utils._filter_numeric_columns(data=data)
+        # data = _Utils._filter_numeric_columns(data=data)
 
         for method in transform_conf:
             if method['method_name'] not in self._transform_steps.keys():
