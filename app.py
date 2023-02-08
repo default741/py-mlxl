@@ -5,6 +5,7 @@ from dash import Input, Output, dcc, html
 from layouts.dashboard import Dashboard_Layout
 from layouts.app_navigation import NavBar_Layout, UI_Content_Layout
 from layouts.classification_input import Classification_Layout
+from layouts.eda_tool import EDA_layout
 
 from server import app
 
@@ -52,7 +53,7 @@ def render_page_content(path_name: str) -> object:
         return html.P("This is the content of about-page. Yay!")
 
     elif path_name == "/eda-tool":
-        return html.P("Oh cool, this is EDA Tool Page!")
+        return EDA_layout
 
     elif path_name == "/classification-details":
         return Classification_Layout

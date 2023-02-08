@@ -50,12 +50,42 @@ class MLXL_Config:
     # ------------------------- FEATURE SELECTION -------------------------
 
     @property
+    def fs_current_version(self) -> float:
+        return self._fs_current_version
+
+    @fs_current_version.setter
+    def fs_current_version(self, version: float) -> None:
+        self._fs_current_version = version
+
+    @property
+    def fs_serial_number(self) -> int:
+        return self._fs_serial_number
+
+    @fs_serial_number.setter
+    def fs_serial_number(self, serial_number: int) -> None:
+        self._fs_serial_number = serial_number
+
+    @property
     def fs_initial_status(self) -> str:
         return self._fs_initial_status
 
     @fs_initial_status.setter
     def fs_initial_status(self, status: str) -> None:
         self._fs_initial_status = status
+
+
+class EDAToolConfig:
+
+    def __init__(self):
+        self._raw_data = pd.DataFrame()
+
+    @property
+    def raw_data(self) -> pd.DataFrame:
+        return self._raw_data
+
+    @raw_data.setter
+    def raw_data(self, dataframe: pd.DataFrame) -> None:
+        self._raw_data = dataframe
 
 
 class DataTransformConfig:
@@ -125,6 +155,18 @@ class DataTransformConfig:
     @raw_data.setter
     def raw_data(self, dataframe: pd.DataFrame) -> None:
         self._raw_data = dataframe
+
+    def refresh_config(self):
+        self.dt_conf_input = {
+            'file_path': '',
+            'file_type': '',
+            'target_feature': '',
+            'feature_list': [],
+            'transform_conf': [],
+            'remove_outlier': False,
+            'contamination_factor': 0,
+            'save_path': './data/processed/transform_pipeline.joblib'
+        }
 
 
 class FeatureSelectionConfig:
@@ -249,7 +291,29 @@ class FeatureSelectionConfig:
     def sfs_scoring_metrics(self) -> list:
         return self._sfs_scoring_metrics
 
+    def refresh_config(self):
+        self.fs_conf_input = {
+            'file_path': '',
+            'file_type': '',
+            'target_feature': '',
+            'run_parallel': True,
 
+            'drop_low_variance_features': False,
+            'variance_thresh': 0.0,
+
+            'drop_high_corr_features': False,
+            'corr_threshold': 0.0,
+            'corr_method': '',
+
+            'drop_multicolliner_features': False,
+
+            'feature_select_conf': [],
+            'test_size': 0.0,
+            'save_path': './data/feature_selected_data_v1.joblib'
+        }
+
+
+eda_conf = EDAToolConfig()
 dt_conf = DataTransformConfig()
 fs_conf = FeatureSelectionConfig()
 ml_config = MLXL_Config()

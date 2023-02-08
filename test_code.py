@@ -1,46 +1,14 @@
-# -*- coding: utf-8 -*-
-from dash import Dash, dcc, html
-import time
+import pandas as pd
 
-from dash.dependencies import Input, Output
+data = {
+    'col_1': [1, 2, 3, 4],
+    'col_2': [10, 20, 30],
+    'col_3': [100, 200, 300, 400, 500]
+}
 
-app = Dash(__name__)
+final_df = pd.DataFrame()
 
-app.layout = html.Div(
-    children=[
-        html.H3("Edit text input to see loading state"),
-        dcc.Input(id="loading-input-1", value='Input triggers local spinner'),
-        dcc.Loading(
-            id="loading-1",
-            type="cube",
-            children=html.Div(id="loading-output-1")
-        ),
-        html.Div(
-            [
-                dcc.Input(id="loading-input-2",
-                          value='Input triggers nested spinner'),
-                dcc.Loading(
-                    id="loading-2",
-                    children=[html.Div([html.Div(id="loading-output-2")])],
-                    type="circle",
-                )
-            ]
-        ),
-    ],
-)
+final_df = pd.concat(
+    [final_df] + [pd.DataFrame({key: value}) for key, value in data.items()], axis=1)
 
-
-@app.callback(Output("loading-output-1", "children"), Input("loading-input-1", "value"))
-def input_triggers_spinner(value):
-    time.sleep(1)
-    return value
-
-
-@app.callback(Output("loading-output-2", "children"), Input("loading-input-2", "value"))
-def input_triggers_nested(value):
-    time.sleep(1)
-    return value
-
-
-if __name__ == "__main__":
-    app.run_server(debug=False)
+print(final_df)

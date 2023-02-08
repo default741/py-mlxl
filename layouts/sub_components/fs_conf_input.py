@@ -155,28 +155,18 @@ fs_btn_group = html.Div(
                         [
                             html.I(className='fa-solid fa-floppy-disk'),
                             html.Span([' Save Configuration'])
-                        ], color='primary', id='fs-save-conf-btn', style={'margin-top': '10px', 'width': '100%', 'fontSize': '0.6rem'}
+                        ], color='primary', id='fs-save-conf-btn', style={'margin-top': '10px', 'width': '100%', 'fontSize': '0.8rem'}
                     )
-                ], width=4),
+                ], width=6),
 
                 dbc.Col([
                     dbc.Button(
                         [
                             html.I(className='fa-solid fa-play'),
                             html.Span([' Run Feature Selection'])
-                        ], id='run-feature-selection', color='primary', style={'margin-top': '10px', 'width': '100%', 'fontSize': '0.6rem'}
+                        ], id='run-feature-selection', color='primary', style={'margin-top': '10px', 'width': '100%', 'fontSize': '0.8rem'}
                     )
-                ], width=4),
-
-                dbc.Col([
-                    dbc.Button(
-                        [
-                            html.I(className='fa-solid fa-download'),
-                            html.Span([' Download Pickle Data'])
-                        ], id='download-fs-pickle-data', color='primary', style={'margin-top': '10px', 'width': '100%', 'fontSize': '0.6rem'}
-                    ),
-                    dcc.Download(id="fs-download")
-                ], width=4),
+                ], width=6),
             ]
         )
     ]

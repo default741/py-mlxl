@@ -3,6 +3,7 @@ from dash import html
 import base64
 import datetime
 import io
+import joblib
 
 import pandas as pd
 
@@ -10,7 +11,7 @@ import pandas as pd
 class UtilityTools:
 
     @staticmethod
-    def parse_contents(upload_contents: str, file_name: str, process_name: str) -> object:
+    def parse_contents(upload_contents: str, file_name: str, process_name: str, file_category: str = '') -> object:
         """Parses Contents from the Uploaded File to show file details.
 
         Args:
@@ -42,11 +43,11 @@ class UtilityTools:
         file_meta_data_layout = html.Div(
             children=[
                 html.Span(['File Name: ', file_name],
-                          id=f'{process_name}-uploaded-file-name'),
+                          id=f'{process_name}-uploaded-file-name{file_category}'),
                 html.Br(),
                 html.Span(
                     ['Date Uploaded: ', date_uploaded])
-            ], id=f'{process_name}-uploaded-file-meta-data', style={'margin-top': '10px'}
+            ], id=f'{process_name}-uploaded-file-meta-data{file_category}', style={'margin-top': '10px'}
         )
 
         return file_meta_data_layout

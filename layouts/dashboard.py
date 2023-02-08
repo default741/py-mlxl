@@ -87,25 +87,27 @@ ml_categories_card_layout = html.Div(
 app_dashboard_title_layout = html.Div(
     dbc.Container(
         [
-            html.H1("Jumbotron", className="display-3"),
-            html.P(
-                "Use Containers to create a jumbotron to call attention to "
-                "featured content or information.",
-                className="lead",
+            html.H1('Machine Learning Accelerator', className='display-3'),
+            html.Span(
+                'Core Modules: Classification, Regreesion, Deep Learning (For Classification and Computer Vision)',
+                className='lead',
             ),
-            html.Hr(className="my-2"),
+            html.Br(),
+            html.Span('Miscellaneous Modules: EDA Tool, KPI Visualization',
+                      className='lead'),
+            html.Hr(className='my-2'),
             html.P(
-                "Use utility classes for typography and spacing to suit the "
-                "larger container."
+                'Machine Learning Accelerator (py-mlxl) is a tool to Automate and '
+                'Speed Up Model Building and Visualizing Process.'
             ),
             html.P(
-                dbc.Button("Learn more", color="primary"), className="lead"
+                html.A(dbc.Button('Learn more', color='primary'), href='/about-page'), className='lead'
             ),
         ],
         fluid=True,
-        className="py-3",
+        className='py-3',
     ),
-    className="p-3 bg-light rounded-3",
+    className='p-3 bg-light rounded-3',
 )
 
 

@@ -1,0 +1,16 @@
+anova_f_value_selection-anova_f_value,mutual_info_classif_selection-mutual_info_classif,permutation_impt_selection-random_forest,recursive_feature_elimination-random_forest,model_based_importance-random_forest,model_based_importance-xgboost,model_based_importance-catboost,model_based_importance-lightgbm
+topcoat color_BK05,platform_LTV,platform_W207,Topcoat Last Used,Ambient Humidity,platform_W207,Paint Viscosity,Clearcoat Humidity
+Basecoat Humidity,platform_S101,Paint Temperature,Ambient Humidity,Paint Pressure,platform_S101,Electrical Resistivity,Ambient Temperature
+topcoat color_BK08,topcoat color_BK32,Ambient Humidity,Ambient Temperature,Ambient Temperature,Clearcoat Temperature,platform_W207,Paint Pressure
+topcoat color_BK06,topcoat color_BK05,Clearcoat Temperature,Paint Temperature,Clearcoat Humidity,Electrical Resistivity,Clearcoat Humidity,Paint Viscosity
+primer color_MK05,topcoat color_BK10,Electrical Resistivity,Paint Pressure,Basecoat Humidity,Paint Viscosity,Ambient Temperature,Topcoat Last Used
+primer color_MK04,topcoat color_BK13,Paint Pressure,Electrical Resistivity,Clearcoat Temperature,Basecoat Humidity,Clearcoat Temperature,Ambient Humidity
+topcoat color_BK34,platform_BLRPICKUP,Basecoat Humidity,Paint Viscosity,Paint Temperature,Primer Applied,Basecoat Humidity,Basecoat Humidity
+topcoat color_BK33,topcoat color_BK21,Clearcoat Humidity,Basecoat Humidity,Topcoat Last Used,Basecoat Temperature,Paint Temperature,Electrical Resistivity
+primer color_PK02,primer color_MK09,Paint Viscosity,Basecoat Temperature,Basecoat Temperature,Ambient Humidity,Ambient Humidity,Paint Temperature
+topcoat color_BK25,topcoat color_BK07,Topcoat Last Used,Clearcoat Humidity,Electrical Resistivity,Ambient Temperature,Paint Pressure,Basecoat Temperature
+Ambient Temperature,topcoat color_BK01,Ambient Temperature,Clearcoat Temperature,Paint Viscosity,Clearcoat Humidity,Basecoat Temperature,Clearcoat Temperature
+,primer color_MK08,platform_S101,platform_S101,platform_W207,Paint Temperature,Topcoat Last Used,platform_W207
+,topcoat color_BK25,Basecoat Temperature,platform_W207,platform_S101,Paint Pressure,platform_S101,platform_S101
+,platform_MAHINDRAG4,Primer Applied,primer color_MK09,Primer Applied,primer color_PK02,primer color_PK02,primer color_PK02
+,Primer Applied,platform_LTV,primer color_PK02,primer color_PK02,Topcoat Last Used,Primer Applied,Primer Applied

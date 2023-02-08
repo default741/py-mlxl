@@ -2,16 +2,19 @@ from dash import Input, Output, State, html, dcc
 
 from .sub_components.dt_conf_input import dt_upload_layout, dt_form, dt_data_info
 from .sub_components.fs_conf_input import fs_upload_layout, fs_form, fs_data_info
+from .sub_components.bm_conf_input import get_upload_button
 
 from src.dash_utils.utils import UtilityTools
 from src.dash_utils.config_input import dt_conf, ml_config, fs_conf
-from src.data_transform import DataTransform
-from src.feature_selection import FeatureSelection
+from src.ml_scripts.data_transform import DataTransform
+from src.ml_scripts.feature_selection import FeatureSelection
 
 from server import app
 from hashlib import sha256
 
 import json
+import datetime
+import joblib
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -70,15 +73,26 @@ data_transform_layout = html.Div(
                                         dbc.ModalBody(
                                             id='dt-show-current-conf'),
                                         dbc.ModalFooter(
-                                            dbc.Button(
-                                                "Close",
-                                                id="close-body-scroll",
-                                                className="ms-auto",
-                                                n_clicks=0,
+                                            html.Div(
+                                                [
+                                                    dbc.Button(
+                                                        "Reset Conf.",
+                                                        id="dt-reset-current-conf-modal",
+                                                        className="ms-auto",
+                                                        n_clicks=0, style={'margin-right': '10px'}
+                                                    ),
+
+                                                    dbc.Button(
+                                                        "Close",
+                                                        id="dt-close-current-conf-modal",
+                                                        className="ms-auto",
+                                                        n_clicks=0,
+                                                    )
+                                                ]
                                             )
                                         ),
                                     ],
-                                    id="modal-body-scroll",
+                                    id="dt-current-conf-modal-obj",
                                     scrollable=True,
                                     is_open=False,
                                 ),
@@ -97,12 +111,23 @@ data_transform_layout = html.Div(
     ]
 )
 
+
 feature_selection_layout = html.Div(
     [
         dbc.Row(
             [
                 dbc.Col(
                     [
+                        dbc.Row([
+                            dbc.Col([
+                                dbc.Checkbox(
+                                    id='use-dt-final-dataset',
+                                    label="Use the Transformed Dataset from the previous Step.",
+                                    value=False,
+                                ),
+                            ], width=12)
+                        ]),
+
                         dbc.Row(
                             [
                                 dbc.Col(
@@ -156,21 +181,29 @@ feature_selection_layout = html.Div(
                                 dbc.Modal(
                                     [
                                         dbc.ModalHeader(dbc.ModalTitle(
-                                            "Modal with scrollable body")),
+                                            "Feature Selection Configuration")),
                                         dbc.ModalBody(
                                             id='fs-show-current-conf'),
-                                        dbc.ModalFooter(
-                                            dbc.Button(
-                                                "Close",
-                                                id="fs-close-body-scroll",
-                                                className="ms-auto",
-                                                n_clicks=0,
+                                        dbc.ModalFooter([
+                                            html.Div(
+                                                [
+                                                    dbc.Button(
+                                                        "Reset Conf.",
+                                                        id="fs-reset-current-conf-modal",
+                                                        className="ms-auto",
+                                                        n_clicks=0, style={'margin-right': '10px'}
+                                                    ),
+
+                                                    dbc.Button(
+                                                        "Close",
+                                                        id="fs-close-current-conf-modal",
+                                                        className="ms-auto",
+                                                        n_clicks=0,
+                                                    )
+                                                ]
                                             )
-                                        ),
-                                    ],
-                                    id="fs-modal-body-scroll",
-                                    scrollable=True,
-                                    is_open=False,
+                                        ]),
+                                    ], id="fs-current-conf-modal-obj", scrollable=True, is_open=False,
                                 ),
 
                                 dbc.Modal(
@@ -191,6 +224,7 @@ feature_selection_layout = html.Div(
                                     id="fs-show-select-feat-modal",
                                     scrollable=True,
                                     is_open=False,
+                                    fullscreen=True
                                 ),
                             ]
                         ),
@@ -198,14 +232,242 @@ feature_selection_layout = html.Div(
                         dbc.Row(
                             [
                                 dbc.Col([fs_data_info])
-                            ], style={'overflow-y': 'scroll', 'height': 'auto'}
+                            ], style={'overflow-y': 'scroll', 'height': 'auto', 'max-height': '1024px'}
                         ),
+
+                        html.Hr(),
+
+                        dbc.Row([
+                            dbc.Col([
+                                dbc.Label("Select File to Download:"),
+                                dcc.Dropdown(
+                                    id='fs-file-select-dropdown',
+                                    multi=False,
+                                    placeholder='Select File',
+                                    value='X_train',
+                                    disabled=True,
+                                    options=[
+                                        {'label': 'X-Train', 'value': 'X_train'},
+                                        {'label': 'X-Test', 'value': 'X_test'},
+                                        {'label': 'Y-Train', 'value': 'y_train'},
+                                        {'label': 'Y-Test', 'value': 'y_test'},
+                                        {'label': 'Selected Features',
+                                            'value': 'selected_features'}
+                                    ]
+                                ),
+                            ], width=8),
+
+                            dbc.Col([
+                                dbc.Label("Download File:"),
+                                dbc.Button(
+                                    [
+                                        html.I(
+                                            className='fa-solid fa-download')
+                                    ], id='download-fs-file-btn', disabled=True, color='primary', style={'width': '100%', 'fontSize': '0.9rem'}
+                                ),
+                                dcc.Download(id="fs-download")
+                            ], width=4),
+                        ])
                     ], width=5
                 ),
             ]
         )
     ]
 )
+
+
+baseline_modeling_layout = html.Div(
+    [
+        dbc.Row([
+            dbc.Col([
+                dbc.Checkbox(
+                    id='use-fs-final-data-file',
+                    label="Use the Feature Selection Joblib file from the previous Step.",
+                    value=False,
+                ),
+            ], width=12)
+        ]),
+
+        dbc.Row([
+            dbc.Col(
+                [html.Div([html.H4('OR')], style={'text-align': 'center'})], width=4)
+        ]),
+
+        dbc.Row([
+            dbc.Col(
+                [dbc.Label(['Upload Feature Selection Joblib Data File:'])], width=12),
+        ]),
+
+        dbc.Row([
+            dbc.Col([
+                get_upload_button(id_type='xtrain', value_str='X-Train'),
+
+                html.Div(
+                    [
+                        html.Div([
+                            html.Span(['File Name: ', 'NA'],
+                                      id='bm-uploaded-file-name-xtrain'),
+                            html.Br(),
+                            html.Span(
+                                ['Date Uploaded: ', 'NA'])
+                        ])
+                    ], id='bm-uploaded-file-meta-data-xtrain', style={'margin-top': '10px'}
+                )
+            ], width=4),
+
+            dbc.Col([
+                get_upload_button(id_type='ytrain', value_str='Y-Train'),
+
+                html.Div(
+                    [
+                        html.Div([
+                            html.Span(['File Name: ', 'NA'],
+                                      id='bm-uploaded-file-name-ytrain'),
+                            html.Br(),
+                            html.Span(
+                                ['Date Uploaded: ', 'NA'])
+                        ])
+                    ], id='bm-uploaded-file-meta-data-ytrain', style={'margin-top': '10px'}
+                )
+            ], width=4),
+
+            dbc.Col([
+                get_upload_button(id_type='select-feat',
+                                  value_str='Features Selected'),
+
+                html.Div(
+                    [
+                        html.Div([
+                            html.Span(['File Name: ', 'NA'],
+                                      id='bm-uploaded-file-name-select-feat'),
+                            html.Br(),
+                            html.Span(
+                                ['Date Uploaded: ', 'NA'])
+                        ])
+                    ], id='bm-uploaded-file-meta-data-select-feat', style={'margin-top': '10px'}
+                )
+            ], width=4),
+        ]),
+
+        # dbc.Row(
+        #     [
+        #         dbc.Col(
+        #             [
+
+
+        #                 # dbc.Row(
+        #                 #     [
+        #                 #         dbc.Col(
+        #                 #             [dbc.Label(['Upload Feature Selection Joblib Data File:']), bm_upload_layout], width=5),
+        #                 #         dbc.Col([
+        #                 #             html.Div(
+        #                 #                 [
+        #                 #                     html.Span(['File Name: ', 'NA'],
+        #                 #                               id='bm-uploaded-file-name'),
+        #                 #                     html.Br(),
+        #                 #                     html.Span(
+        #                 #                         ['Date Uploaded: ', 'NA'])
+        #                 #                 ], id='bm-uploaded-file-meta-data', style={'margin-left': '10px'}
+        #                 #             )
+        #                 #         ], width=7, style={'border-left': '1px solid black'}),
+        #                 #     ]
+        #                 # ),
+
+        #                 # dbc.Row([fs_form])
+        #             ], width=6
+        #         ),
+
+        # dbc.Col([], width=1),
+
+        # dbc.Col(
+        #     [
+        #         dbc.Row(
+        #             [
+        #                 dbc.Button(
+        #                     [
+        #                         html.I(
+        #                             className='fa-regular fa-file-code'),
+        #                         html.Span(
+        #                             [' Show Current Configuration (JSON)'])
+        #                     ], id='fs-show-current-conf-btn', color='primary', style={
+        #                         'margin-top': '15px', 'margin-bottom': '15px', 'width': '100%', 'fontSize': '0.8rem', 'height': 'auto'
+        #                     }
+        #                 ),
+
+        #                 dbc.Button(
+        #                     [
+        #                         html.I(
+        #                             className='fa-regular fa-file-code'),
+        #                         html.Span(
+        #                             [' Show Selected Features (JSON)'])
+        #                     ], id='fs-show-selected_feat-btn', color='primary', disabled=True, style={
+        #                         'margin-top': '15px', 'margin-bottom': '15px', 'width': '100%', 'fontSize': '0.8rem', 'height': 'auto'
+        #                     }
+        #                 ),
+
+        #                 dbc.Modal(
+        #                     [
+        #                         dbc.ModalHeader(dbc.ModalTitle(
+        #                             "Feature Selection Configuration")),
+        #                         dbc.ModalBody(
+        #                             id='fs-show-current-conf'),
+        #                         dbc.ModalFooter([
+        #                             html.Div(
+        #                                 [
+        #                                     dbc.Button(
+        #                                         "Reset Conf.",
+        #                                         id="fs-reset-current-conf-modal",
+        #                                         className="ms-auto",
+        #                                         n_clicks=0, style={'margin-right': '10px'}
+        #                                     ),
+
+        #                                     dbc.Button(
+        #                                         "Close",
+        #                                         id="fs-close-current-conf-modal",
+        #                                         className="ms-auto",
+        #                                         n_clicks=0,
+        #                                     )
+        #                                 ]
+        #                             )
+        #                         ]),
+        #                     ], id="fs-current-conf-modal-obj", scrollable=True, is_open=False,
+        #                 ),
+
+        #                 dbc.Modal(
+        #                     [
+        #                         dbc.ModalHeader(dbc.ModalTitle(
+        #                             "Selected Features")),
+        #                         dbc.ModalBody(
+        #                             id='fs-show-selected-features-json'),
+        #                         dbc.ModalFooter(
+        #                             dbc.Button(
+        #                                 "Close",
+        #                                 id="fs-close-select-feat-modal",
+        #                                 className="ms-auto",
+        #                                 n_clicks=0,
+        #                             )
+        #                         ),
+        #                     ],
+        #                     id="fs-show-select-feat-modal",
+        #                     scrollable=True,
+        #                     is_open=False,
+        #                     fullscreen=True
+        #                 ),
+        #             ]
+        #         ),
+
+        #         dbc.Row(
+        #             [
+        #                 dbc.Col([fs_data_info])
+        #             ], style={'overflow-y': 'scroll', 'height': 'auto'}
+        #         ),
+        #     ], width=5
+        # ),
+        #         ]
+        #     )
+    ]
+)
+
 
 accordion = html.Div(
     dbc.Accordion(
@@ -219,7 +481,8 @@ accordion = html.Div(
                     feature_selection_layout], title=f"Feature Selection Details, Status - {ml_config.dt_initial_status}", id='fs-accordion-title'
             ),
             dbc.AccordionItem(
-                children=[], title=f"Baseline Modeling Details, Status - {ml_config.dt_initial_status}", id='bm-accordion-title'
+                children=[
+                    baseline_modeling_layout], title=f"Baseline Modeling Details, Status - {ml_config.dt_initial_status}", id='bm-accordion-title'
             ),
             dbc.AccordionItem(
                 children=[], title=f"Hyper-Parameter Tuning Details, Status - {ml_config.dt_initial_status}", id='hpt-accordion-title'
@@ -230,6 +493,7 @@ accordion = html.Div(
         always_open=True
     ),
 )
+
 
 classification_heading_jumbotron = html.Div(
     dbc.Container(
@@ -356,6 +620,7 @@ def dt_show_feature_list_target(file_name_children):
         Input('dt-save-conf-btn', 'n_clicks'),
         Input('dt-feature-list-target', 'value'),
         Input('dt-feature-list-categorical', 'value'),
+        Input('dt-reset-current-conf-modal', 'n_clicks'),
 
         Input('drop_redundent_columns', 'value'),
         Input('drop_redundent_columns_params', 'value'),
@@ -380,7 +645,7 @@ def dt_show_feature_list_target(file_name_children):
     ]
 )
 def dt_update_config(
-    save_btn, target_value, cat_feat_list, drc_bool, drop_redundent_columns_params, dnc_bool, drop_null_columns_params, duvc_bool,
+    save_btn, target_value, cat_feat_list, reset_btn_click, drc_bool, drop_redundent_columns_params, dnc_bool, drop_null_columns_params, duvc_bool,
     drop_unique_value_columns_params, di_bool, data_imputation_params, fs_bool, feature_scaling_params,
     ft_bool, feature_transformer_params, outlier_removal_bool, contamination_factor
 ):
@@ -438,6 +703,9 @@ def dt_update_config(
         ml_config.status.loc[len(ml_config.status.index)] = [_unique_serial_number, dt.datetime.now(), ml_config.dt_current_version,
                                                              'Data Transformation', json.dumps(dt_conf.dt_conf_input), ml_config.dt_initial_status]
 
+    if reset_btn_click:
+        dt_conf.refresh_config()
+
     current_status = f"Data Transformation Details, Status - {ml_config.dt_initial_status}"
 
     json_output = html.Div(
@@ -459,7 +727,7 @@ def dt_update_config(
         State("dt-save-conf-file-success", "is_open")
     ],
 )
-def toggle_conf_save_alert(save_conf_bth, save_conf_alert_state):
+def toggle_dt_conf_save_alert(save_conf_bth, save_conf_alert_state):
     if save_conf_bth:
         return not save_conf_alert_state
 
@@ -502,13 +770,13 @@ def valid_dt_duvc_threshold(drop_unique_value_columns_params):
 
 
 @app.callback(
-    Output("modal-body-scroll", "is_open"),
+    Output("dt-current-conf-modal-obj", "is_open"),
     [
         Input("dt-show-current-conf-btn", "n_clicks"),
-        Input("close-body-scroll", "n_clicks"),
+        Input("dt-close-current-conf-modal", "n_clicks"),
     ],
     [
-        State("modal-body-scroll", "is_open")
+        State("dt-current-conf-modal-obj", "is_open")
     ],
 )
 def toggle_show_dt_conf_modal(n1, n2, is_open):
@@ -523,7 +791,7 @@ def toggle_show_dt_conf_modal(n1, n2, is_open):
         Input('dt-outlier-removal-checkbox', 'value')
     ]
 )
-def toggle_outlier_dropping(value):
+def toggle_dt_outlier_dropping(value):
     return not value
 
 
@@ -568,7 +836,7 @@ def toggle_dt_run_started_alert(run_transform_btn, run_status_alert_state):
 def download_dt_data(download_btn):
     if download_btn:
         df = pd.read_csv('./data/processed/transformed_data.csv')
-        return dcc.send_data_frame(df.to_csv, filename=f"transformed_data_v{ml_config.dt_serial_number}.csv", index=False)
+        return dcc.send_data_frame(df.to_csv, filename=f"transformed_data_v{ml_config.dt_current_version - 0.1}.csv", index=False)
 
 
 # --------------------------------------------- ## FEATURE SELECTION CALLBACK ## --------------------------------------------- #
@@ -576,24 +844,38 @@ def download_dt_data(download_btn):
 @app.callback(
     Output('fs-uploaded-file-meta-data', 'children'),
     [
-        Input('fs-raw-data-upload', 'contents')
+        Input('fs-raw-data-upload', 'contents'),
+        Input('use-dt-final-dataset', 'value')
     ],
     [
         State('fs-raw-data-upload', 'filename'),
     ]
 )
-def fs_upload_raw_data(file_content, file_name):
+def fs_upload_raw_data(file_content, use_dt_data_bool, file_name):
+    if use_dt_data_bool:
+        date_uploaded = datetime.datetime.now().strftime('%d %B, %Y %H:%M:%S')
+        previous_file = f'transformed_data_v{ml_config.dt_current_version - 0.1}.csv'
+
+        pd.read_csv(f'./data/processed/{previous_file}').to_csv(
+            f'./data/raw/{previous_file}', index=False)
+
+        return html.Div([
+            html.Span(['File Name: ', previous_file],
+                      id=f'fs-uploaded-file-name'),
+            html.Br(),
+            html.Span(
+                ['Date Uploaded: ', date_uploaded])
+        ])
+
     if file_content is not None:
         return UtilityTools.parse_contents(file_content, file_name, 'fs')
 
-    default_response_page = html.Div(
-        [
-            html.Span(['File Name: ', 'NA'],
-                      id='fs-uploaded-file-name'),
-            html.Br(),
-            html.Span(['Date Uploaded: ', 'NA'])
-        ], id='fs-uploaded-file-meta-data', style={'margin-top': '10px'}
-    )
+    default_response_page = html.Div([
+        html.Span(['File Name: ', 'NA'],
+                  id='fs-uploaded-file-name'),
+        html.Br(),
+        html.Span(['Date Uploaded: ', 'NA'])
+    ])
 
     return default_response_page
 
@@ -648,7 +930,7 @@ def fs_show_feature_list_target(file_name_children):
         Input('fs-remove-low-variance-feat-checkbox', 'value')
     ]
 )
-def toggle_variance_feat_dropping(value):
+def toggle_fs_variance_feat_dropping(value):
     return not value
 
 
@@ -661,7 +943,7 @@ def toggle_variance_feat_dropping(value):
         Input('fs-remove-high-corr-feat-checkbox', 'value')
     ]
 )
-def toggle_corr_feat_dropping(value):
+def toggle_fs_corr_feat_dropping(value):
     return (not value, not value)
 
 
@@ -674,6 +956,7 @@ def toggle_corr_feat_dropping(value):
         Input('fs-save-conf-btn', 'n_clicks'),
         Input('fs-feature-list-target', 'value'),
         Input('fs-test-size-input', 'value'),
+        Input('fs-reset-current-conf-modal', 'n_clicks'),
 
         Input('fs-remove-low-variance-feat-checkbox', 'value'),
         Input('fs-variance-thresh-input', 'value'),
@@ -721,7 +1004,7 @@ def toggle_corr_feat_dropping(value):
     ]
 )
 def fs_update_config(
-    save_btn, target_value, test_size, variance_bool, variance_thresh, multi_corr_bool, corr_bool, corr_thresh, corr_method, run_parallel_bool,
+    save_btn, target_value, test_size, reset_conf_btn, variance_bool, variance_thresh, multi_corr_bool, corr_bool, corr_thresh, corr_method, run_parallel_bool,
     anova_f_bool, anova_f_params, mic_bool, mic_params, logit_bool, logit_params, perm_bool, perm_model, perm_feat_num, rfe_bool, rfe_model,
     rfe_feat_num, rfe_step, mbi_bool, mbo_model, mbi_feat_num, rs_bool, ri_model, ri_feat_num, boruta_bool, boruta_model, sfs_bool, sfs_model,
     sfs_feat_num, sfs_metric
@@ -796,6 +1079,9 @@ def fs_update_config(
                     'params': params_dict[method_name]
                 })
 
+    if reset_conf_btn:
+        fs_conf.refresh_config()
+
     current_status = f"Feature Selection Details, Status - {ml_config.fs_initial_status}"
 
     json_output = html.Div(
@@ -817,7 +1103,7 @@ def fs_update_config(
         State("fs-save-conf-file-success", "is_open")
     ],
 )
-def toggle_conf_save_alert(save_conf_bth, save_conf_alert_state):
+def toggle_fs_conf_save_alert(save_conf_bth, save_conf_alert_state):
     if save_conf_bth:
         return not save_conf_alert_state
 
@@ -825,13 +1111,13 @@ def toggle_conf_save_alert(save_conf_bth, save_conf_alert_state):
 
 
 @app.callback(
-    Output("fs-modal-body-scroll", "is_open"),
+    Output("fs-current-conf-modal-obj", "is_open"),
     [
         Input("fs-show-current-conf-btn", "n_clicks"),
-        Input("fs-close-body-scroll", "n_clicks"),
+        Input("fs-close-current-conf-modal", "n_clicks"),
     ],
     [
-        State("fs-modal-body-scroll", "is_open")
+        State("fs-current-conf-modal-obj", "is_open")
     ],
 )
 def toggle_show_fs_conf_modal(n1, n2, is_open):
@@ -844,7 +1130,9 @@ def toggle_show_fs_conf_modal(n1, n2, is_open):
     [
         Output("fs-run-complete", "is_open"),
         Output('fs-show-selected_feat-btn', 'disabled'),
-        Output('fs-show-selected-features-json', 'children')
+        Output('fs-show-selected-features-json', 'children'),
+        Output('fs-file-select-dropdown', 'disabled'),
+        Output('download-fs-file-btn', 'disabled')
     ],
     [
         Input("run-feature-selection", "n_clicks"),
@@ -857,28 +1145,28 @@ def toggle_fs_run_started_alert(run_selection_btn, run_status_alert_state):
     if run_selection_btn:
         selected_features = FeatureSelection().compile_selection(**fs_conf.fs_conf_input)
 
+        feature_list = {f'{outer_key}-{inner_key}': feat_list for outer_key,
+                        outer_value in selected_features.items() for inner_key, feat_list in outer_value.items()}
+
+        feature_list = pd.concat([pd.DataFrame(
+        )] + [pd.DataFrame({key: value}) for key, value in feature_list.items()], axis=1)
+
+        select_feature_table = dbc.Table.from_dataframe(
+            feature_list, striped=True, bordered=True, hover=True)
+
         _unique_serial_number = sha256(
-            str(ml_config.dt_serial_number).encode('utf-8')).hexdigest()
+            str(ml_config.fs_serial_number).encode('utf-8')).hexdigest()
 
-        ml_config.dt_serial_number += 1
-        ml_config.dt_current_version += 0.1
-        ml_config.dt_initial_status = 'Run Completed Successfully'
+        ml_config.fs_serial_number += 1
+        ml_config.fs_current_version += 0.1
+        ml_config.fs_initial_status = 'Run Completed Successfully'
 
-        ml_config.status.loc[len(ml_config.status.index)] = [_unique_serial_number, dt.datetime.now(), ml_config.dt_current_version,
-                                                             'Data Transformation', json.dumps(dt_conf.dt_conf_input), ml_config.dt_initial_status]
+        ml_config.status.loc[len(ml_config.status.index)] = [_unique_serial_number, dt.datetime.now(), ml_config.fs_current_version,
+                                                             'Data Transformation', json.dumps(fs_conf.fs_conf_input), ml_config.fs_initial_status]
 
-        print(ml_config.status)
+        return [not run_status_alert_state, False, select_feature_table, False, False]
 
-        json_output = html.Div(
-            [
-                html.Pre(children=["JSON Config: {}".format(
-                    json.dumps(selected_features, indent=4))])
-            ]
-        )
-
-        return [not run_status_alert_state, False, json_output]
-
-    return [run_status_alert_state, True, html.Div()]
+    return [run_status_alert_state, True, html.Div(), True, False]
 
 
 @app.callback(
@@ -895,3 +1183,185 @@ def toggle_show_fs_conf_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open
+
+
+@app.callback(
+    [
+        Output("fs-download", "data"),
+        Output('download-fs-file-btn', 'n_clicks')
+    ],
+    [
+        Input("download-fs-file-btn", "n_clicks"),
+        Input("fs-file-select-dropdown", "value"),
+    ],
+    prevent_initial_call=True
+)
+def download_fs_data(download_btn, file_type):
+    if download_btn:
+        feature_select_meta = joblib.load(fs_conf.fs_conf_input['save_path'])
+        return_data = dict()
+
+        if file_type == 'selected_features':
+            feature_list = feature_select_meta['meta_data']['selected_features']
+
+            feature_list = {f'{outer_key}-{inner_key}': feat_list for outer_key,
+                            outer_value in feature_list.items() for inner_key, feat_list in outer_value.items()}
+
+            feature_list = pd.concat([pd.DataFrame(
+            )] + [pd.DataFrame({key: value}) for key, value in feature_list.items()], axis=1)
+
+            return_data = dcc.send_data_frame(
+                feature_list.to_csv, filename=f"selected_feature_list_v{ml_config.fs_current_version - 0.1}.csv", index=False)
+
+            return [return_data, 0]
+
+        if file_type in ['y_train', 'y_test']:
+            target_data = pd.DataFrame(
+                {'target_label': feature_select_meta['meta_data'][file_type]})
+
+            return_data = dcc.send_data_frame(
+                target_data.to_csv, filename=f"{file_type}_v{ml_config.fs_current_version - 0.1}.csv", index=False)
+
+            return [return_data, 0]
+
+        return_data = dcc.send_data_frame(
+            feature_select_meta['meta_data'][file_type].to_csv,
+            filename=f"{file_type}_v{ml_config.fs_current_version - 0.1}.csv",
+            index=False
+        )
+
+        return [return_data, 0]
+
+    return [{}, 0]
+# --------------------------------------------- ## BASELINE MODELING CALLBACK ## --------------------------------------------- #
+
+
+@app.callback(
+    Output('bm-uploaded-file-meta-data-xtrain', 'children'),
+    [
+        Input('bm-raw-xtrain-data-upload', 'contents'),
+        Input('use-fs-final-data-file', 'value')
+    ],
+    [
+        State('bm-raw-xtrain-data-upload', 'filename'),
+    ]
+)
+def bm_upload_raw_data_xtrain(file_content, use_fs_data_bool, file_name):
+    if use_fs_data_bool:
+        date_uploaded = datetime.datetime.now().strftime('%d %B, %Y %H:%M:%S')
+        previous_file = f'X_train_v{ml_config.fs_current_version - 0.1}.csv'
+
+        X_train_data = joblib.load(
+            './data/feature_selected_data_v1.joblib')['meta_data']['X_train']
+
+        X_train_data.to_csv(f'./data/raw/{previous_file}', index=False)
+
+        return html.Div([
+            html.Span(['File Name: ', previous_file],
+                      id=f'bm-uploaded-file-name-xtrain'),
+            html.Br(),
+            html.Span(
+                ['Date Uploaded: ', date_uploaded])
+        ])
+
+    if file_content is not None:
+        return UtilityTools.parse_contents(file_content, file_name, 'bm', '-xtrain')
+
+    default_response_page = html.Div([
+        html.Span(['File Name: ', 'NA'],
+                  id='bm-uploaded-file-name-xtrain'),
+        html.Br(),
+        html.Span(['Date Uploaded: ', 'NA'])
+    ])
+
+    return default_response_page
+
+
+@app.callback(
+    Output('bm-uploaded-file-meta-data-ytrain', 'children'),
+    [
+        Input('bm-raw-ytrain-data-upload', 'contents'),
+        Input('use-fs-final-data-file', 'value')
+    ],
+    [
+        State('bm-raw-ytrain-data-upload', 'filename'),
+    ]
+)
+def bm_upload_raw_data_ytrain(file_content, use_fs_data_bool, file_name):
+    if use_fs_data_bool:
+        date_uploaded = datetime.datetime.now().strftime('%d %B, %Y %H:%M:%S')
+        previous_file = f'y_train_v{ml_config.fs_current_version - 0.1}.csv'
+
+        y_train_data = joblib.load(
+            './data/feature_selected_data_v1.joblib')['meta_data']['y_train']
+
+        pd.DataFrame({'target_label': y_train_data}).to_csv(
+            f'./data/raw/{previous_file}', index=False)
+
+        return html.Div([
+            html.Span(['File Name: ', previous_file],
+                      id=f'bm-uploaded-file-name-ytrain'),
+            html.Br(),
+            html.Span(
+                ['Date Uploaded: ', date_uploaded])
+        ])
+
+    if file_content is not None:
+        return UtilityTools.parse_contents(file_content, file_name, 'bm', '-ytrain')
+
+    default_response_page = html.Div([
+        html.Span(['File Name: ', 'NA'],
+                  id='bm-uploaded-file-name-ytrain'),
+        html.Br(),
+        html.Span(['Date Uploaded: ', 'NA'])
+    ])
+
+    return default_response_page
+
+
+@app.callback(
+    Output('bm-uploaded-file-meta-data-select-feat', 'children'),
+    [
+        Input('bm-raw-select-feat-data-upload', 'contents'),
+        Input('use-fs-final-data-file', 'value')
+    ],
+    [
+        State('bm-raw-select-feat-data-upload', 'filename'),
+    ]
+)
+def bm_upload_raw_data_select_feat(file_content, use_fs_data_bool, file_name):
+    if use_fs_data_bool:
+        date_uploaded = datetime.datetime.now().strftime('%d %B, %Y %H:%M:%S')
+        previous_file = f'selected_feature_list_v{ml_config.fs_current_version - 0.1}.csv'
+
+        select_feat_data = joblib.load(
+            './data/feature_selected_data_v1.joblib')['meta_data']['selected_features']
+
+        select_feat_data = {f'{outer_key}-{inner_key}': feat_list for outer_key,
+                            outer_value in select_feat_data.items() for inner_key, feat_list in outer_value.items()}
+
+        select_feat_data = pd.concat([pd.DataFrame(
+        )] + [pd.DataFrame({key: value}) for key, value in select_feat_data.items()], axis=1)
+
+        select_feat_data.to_csv(
+            f'./data/raw/{previous_file}', index=False)
+
+        return html.Div([
+            html.Span(['File Name: ', previous_file],
+                      id=f'bm-uploaded-file-name-select-feat'),
+            html.Br(),
+            html.Span(
+                ['Date Uploaded: ', date_uploaded])
+        ])
+
+    if file_content is not None:
+        return UtilityTools.parse_contents(file_content, file_name, 'bm', '-select-feat')
+
+    default_response_page = html.Div([
+        html.Span(['File Name: ', 'NA'],
+                  id='bm-uploaded-file-name-select-feat'),
+        html.Br(),
+        html.Span(['Date Uploaded: ', 'NA'])
+    ])
+
+    return default_response_page
