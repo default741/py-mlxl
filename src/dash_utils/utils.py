@@ -40,14 +40,12 @@ class UtilityTools:
 
         date_uploaded = datetime.datetime.now().strftime('%d %B, %Y %H:%M:%S')
 
-        file_meta_data_layout = html.Div(
-            children=[
-                html.Span(['File Name: ', file_name],
-                          id=f'{process_name}-uploaded-file-name{file_category}'),
-                html.Br(),
-                html.Span(
-                    ['Date Uploaded: ', date_uploaded])
-            ], id=f'{process_name}-uploaded-file-meta-data{file_category}', style={'margin-top': '10px'}
-        )
+        file_meta_data_layout = html.Div([
+            html.Span(['File Name: ', file_name],
+                      id=f'{process_name}-uploaded-file-name{file_category}'),
+            html.Br(),
+            html.Span(
+                ['Date Uploaded: ', date_uploaded])
+        ])
 
         return file_meta_data_layout

@@ -95,7 +95,8 @@ remove_high_corr_layout = html.Div(
                 {'label': method.capitalize(), 'value': method} for method in list(fs_conf.correlation_methods)
             ],
             placeholder='Select Method',
-            disabled=True),
+            disabled=True
+        ),
     ], style={'margin-top': '10px'}
 )
 

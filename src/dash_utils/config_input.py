@@ -102,21 +102,15 @@ class DataTransformConfig:
         ]
 
         self._imputation_methods: list = [
-            'iterative',
-            'knn',
-            'simple'
+            'iterative', 'knn', 'simple'
         ]
 
         self._feature_scaling_methods: list = [
-            'standard',
-            'robust',
-            'minmax',
-            'maxabs'
+            'standard', 'robust', 'minmax', 'maxabs'
         ]
 
         self._feature_transform_methods: list = [
-            'power',
-            'quantile'
+            'power', 'quantile'
         ]
 
         self.dt_conf_input: dict = {
@@ -313,7 +307,112 @@ class FeatureSelectionConfig:
         }
 
 
+class BaselineModelingConfig:
+
+    def __init__(self):
+        self.bm_conf_input = {
+            'file_path': {
+                'X_train': '',
+                'y_train': '',
+                'selected_feature': ''
+            },
+
+            'balanced_data': False,
+            'check_imbalance': False,
+            'imbalance_class': 1,
+            'imbalance_threshold': 0.0,
+
+            'feature_set_list': [],
+            'model_list': [],
+            'sample_list': [],
+
+            'enable_voting': False,
+            'voting_model_list': [],
+            'voting_sample_list': [],
+
+            'kpi_sorting': [],
+            'save_path': {
+                'report': './data/baseline_results_v1.xlsx',
+                'best_results': './data/baseline_best_results_v1.joblib'
+            }
+        }
+
+        self._model_list = [
+            'random_forest', 'gradient_boosting', 'xgboost', 'lightgbm', 'logistic_regression', 'svm_rbf', 'mlp_classifier', 'all'
+        ]
+
+        self._sample_list = [
+            'smote (up)', 'adasyn (up)', 'svm_smote (up)', 'boderline_smote (up)', 'k_means_smote (up)', 'near_miss (down)',
+            'renn (down)', 'tomek_links (down)', 'smote_tomek (combine)', 'smote_enn (combine)', 'all'
+        ]
+
+        self._selected_features = pd.DataFrame()
+        self._x_train = pd.DataFrame()
+        self._y_train = pd.DataFrame()
+
+    @property
+    def model_list(self) -> pd.DataFrame:
+        return self._model_list
+
+    @property
+    def sample_list(self) -> pd.DataFrame:
+        return self._sample_list
+
+    @property
+    def selected_features(self) -> pd.DataFrame:
+        return self._selected_features
+
+    @selected_features.setter
+    def selected_features(self, dataframe: pd.DataFrame) -> None:
+        self._selected_features = dataframe
+
+    @property
+    def x_train(self) -> pd.DataFrame:
+        return self._x_train
+
+    @x_train.setter
+    def x_train(self, dataframe: pd.DataFrame) -> None:
+        self._x_train = dataframe
+
+    @property
+    def y_train(self) -> pd.DataFrame:
+        return self._y_train
+
+    @y_train.setter
+    def y_train(self, dataframe: pd.DataFrame) -> None:
+        self._y_train = dataframe
+
+    def refresh_config(self):
+        self.bm_conf_input = {
+            'file_path': {
+                'X_train': '',
+                'y_train': '',
+                'selected_feature': ''
+            },
+
+            'balanced_data': False,
+            'check_imbalance': False,
+            'imbalance_class': 1,
+            'imbalance_threshold': 0.0,
+
+            'feature_set_list': [],
+            'model_list': [],
+            'sample_list': [],
+
+            'enable_voting': False,
+            'voting_model_list': [],
+            'voting_sample_list': [],
+
+            'kpi_sorting': [],
+            'save_path': {
+                'report': './data/baseline_results_v1.xlsx',
+                'best_results': './data/baseline_best_results_v1.joblib'
+            }
+        }
+
+
 eda_conf = EDAToolConfig()
 dt_conf = DataTransformConfig()
 fs_conf = FeatureSelectionConfig()
+bm_conf = BaselineModelingConfig()
 ml_config = MLXL_Config()

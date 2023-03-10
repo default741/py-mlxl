@@ -21,6 +21,56 @@ import joblib
 import itertools
 
 
+class _Read_Data_File:
+    """Protected class to Read Data with respect to its File Type. Currently Supports
+    three file types namely CSV, EXCEL (xlsx), Parquet.
+
+    Methods:
+        _read_csv_type: Reads CSV file type
+        _read_excel_type: Reads XLSX file type
+        _read_parquet_type: Reads PARQUET file type
+    """
+
+    @staticmethod
+    def _read_csv_type(file_path: str, params: dict) -> pd.DataFrame:
+        """Reads CSV file type using Pandas Library (read_csv).
+
+        Args:
+            file_path (str): Path to read the file from.
+            params (dict): Extra Parameters for the Method
+
+        Returns:
+            pd.DataFrame: Raw Data File
+        """
+        return pd.read_csv(file_path, **params)
+
+    @staticmethod
+    def _read_excel_type(file_path: str, params: dict) -> pd.DataFrame:
+        """Reads XLSX file type using Pandas Library (read_excel).
+
+        Args:
+            file_path (str): Path to read the file from.
+            params (dict): Extra Parameters for the Method
+
+        Returns:
+            pd.DataFrame: Raw Data File
+        """
+        return pd.read_excel(file_path, **params)
+
+    @staticmethod
+    def _read_parquet_type(file_path: str, params: dict) -> pd.DataFrame:
+        """Reads Parquet file type using Pandas Library (read_parquet).
+
+        Args:
+            file_path (str): Path to read the file from.
+            params (dict): Extra Parameters for the Method
+
+        Returns:
+            pd.DataFrame: Raw Data File
+        """
+        return pd.read_parquet(file_path, **params)
+
+
 class _Utils:
     """Utility Class for Helping Fulctions
 
@@ -108,17 +158,6 @@ class BaselineModelling:
             'mlp_classifier': MLPClassifier
         }
 
-    def load_data_pickle(self, file_path: str) -> dict:
-        """Load Feature Selected Datasets.
-
-        Args:
-            file_path (str): Path of saved Data
-
-        Returns:
-            dict: Feature Selected Data
-        """
-        return joblib.load(file_path)
-
     def check_imbalance(self, target: np.ndarray, imbalance_class: int, imbalance_threshold: float = 0.1) -> bool:
         target_df = pd.DataFrame({'y_train': target})
         imbalance_percent = target_df[target_df['y_train']
@@ -135,11 +174,16 @@ class BaselineModelling:
 
         return imbpipeline(steps=[('sample', self._sampling_methods[sample_name]), ('model', self._models[model_name](random_state=0))])
 
-    def get_pnc_list(self, feature_sets: list, balanced: str) -> list:
-        if balanced:
-            return list(itertools.product(feature_sets, [None], list(self._models.keys())))
+    def get_pnc_list(self, feature_sets: list, model_list: list, sample_list: list, balanced: str) -> list:
+        model_list = list(self._models.keys()
+                          ) if 'all' in model_list else model_list
+        sample_list = list(self._sampling_methods.keys()
+                           ) if 'all' in sample_list else sample_list
 
-        return list(itertools.product(feature_sets, list(self._sampling_methods.keys()), list(self._models.keys())))
+        if balanced:
+            return list(itertools.product(feature_sets, [None], list(model_list)))
+
+        return list(itertools.product(feature_sets, list(sample_list), list(model_list)))
 
     def run_cross_validation(self, pipeline, X_train, y_train, splits, run_name):
         return (cross_validate(pipeline, X_train, y_train, cv=splits, scoring=_Utils._get_scorers(), n_jobs=-1), run_name)
@@ -277,7 +321,8 @@ class BaselineModelling:
         joblib.dump({'best_result': best_result}, save_path['best_results'])
 
     def compile_baseline(
-        self, file_path: str, balanced_data: bool, check_imbalance: bool, imbalance_class: int, imbalance_threshold: float, kpi_sorting: list,
+        self, file_path: str, balanced_data: bool, check_imbalance: bool, imbalance_class: int, imbalance_threshold: float,
+        feature_set_list: list, model_list: list, sample_list: list, kpi_sorting: list,
         save_path: dict, enable_voting: bool, voting_model_list: list, voting_sample_list: list = []
     ) -> None:
         """Compiles all the Methods to run the Baseline Modelling.
@@ -293,22 +338,26 @@ class BaselineModelling:
         feature_list = dict()
         balanced = balanced_data
 
-        feat_select_meta_data = self.load_data_pickle(
-            file_path=file_path)['meta_data']
+        X_train = _Read_Data_File._read_csv_type(
+            file_path=file_path['X_train'])
+        y_train = _Read_Data_File._read_csv_type(
+            file_path=file_path['y_train'])
+        selected_features = _Read_Data_File._read_csv_type(
+            file_path=file_path['selected_features'])
 
-        X_train, y_train, selected_features = (
-            feat_select_meta_data['X_train'], feat_select_meta_data['y_train'], feat_select_meta_data['selected_features']
-        )
+        feature_set_list = list(
+            selected_features.columns) if 'all' in feature_set_list else feature_set_list
 
-        feature_list = {f'{outer_key}-{inner_key}': feat_list for outer_key,
-                        outer_value in selected_features.items() for inner_key, feat_list in outer_value.items()}
+        for col in selected_features.columns:
+            if col in feature_set_list:
+                feature_list[col] = list(selected_features[col])
 
         if check_imbalance:
             balanced = self.check_imbalance(
                 target=y_train, imbalance_class=imbalance_class, imbalance_threshold=imbalance_threshold)
 
-        pnc_list = self.get_pnc_list(feature_sets=list(
-            feature_list.keys()), balanced=balanced)
+        pnc_list = self.get_pnc_list(feature_sets=list(feature_list.keys(
+        )), model_list=model_list, sample_list=sample_list, balanced=balanced)
 
         results = self.run_baseline_parallel(
             X_train=X_train, y_train=y_train, pnc_list=pnc_list, feature_list=feature_list, balanced=balanced)
@@ -329,12 +378,20 @@ if __name__ == '__main__':
 
     # Example Configuration File for Baseline Modelling.
     config = {
-        'file_path': './data/feature_selected_data_v1.joblib',
+        'file_path': {
+            'X_train': '',
+            'y_train': '',
+            'selected_feature': ''
+        },
 
         'balanced_data': False,
         'check_imbalance': False,
         'imbalance_class': 1,
         'imbalance_threshold': 0.1,
+
+        'feature_set_list': ['all'],
+        'model_list': ['all'],
+        'sample_list': ['all'],
 
         'enable_voting': True,
         'voting_model_list': ['random_forest', 'lightgbm'],
