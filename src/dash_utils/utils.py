@@ -3,7 +3,7 @@ from dash import html
 import base64
 import datetime
 import io
-import joblib
+import os
 
 import pandas as pd
 
@@ -49,3 +49,17 @@ class UtilityTools:
         ])
 
         return file_meta_data_layout
+
+    @staticmethod
+    def _create_folder(folder_name: str = 'processed_data', folder_path: str = '.') -> None:
+        """Creates a folder in specified path for Log Files.
+
+        Args:
+            folder_name (str, optional): Name of the folder that needs to be created. Defaults to 'processed_data'.
+            folder_path (str, optional): Path where the folder needs to be created. Defaults to '.'.
+        """
+
+        folder_path_uri = os.path.join(folder_path, folder_name)
+
+        if not os.path.exists(folder_path_uri):
+            os.mkdir(folder_path_uri)

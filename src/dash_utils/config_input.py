@@ -121,7 +121,7 @@ class DataTransformConfig:
             'transform_conf': [],
             'remove_outlier': False,
             'contamination_factor': 0,
-            'save_path': './data/processed/transform_pipeline.joblib'
+            'save_path': './data/downloadables/data_transform_files/transform_pipeline.joblib'
         }
 
         self._raw_data = pd.DataFrame()
@@ -159,7 +159,7 @@ class DataTransformConfig:
             'transform_conf': [],
             'remove_outlier': False,
             'contamination_factor': 0,
-            'save_path': './data/processed/transform_pipeline.joblib'
+            'save_path': './data/downloadables/data_transform_files/transform_pipeline.joblib'
         }
 
 
@@ -232,7 +232,7 @@ class FeatureSelectionConfig:
 
             'feature_select_conf': [],
             'test_size': 0.0,
-            'save_path': './data/feature_selected_data_v1.joblib'
+            'save_path': './data/downloadables/feature_selection_files/feature_selected_meta.joblib'
         }
 
         self._transformed_data = pd.DataFrame()
@@ -303,7 +303,7 @@ class FeatureSelectionConfig:
 
             'feature_select_conf': [],
             'test_size': 0.0,
-            'save_path': './data/feature_selected_data_v1.joblib'
+            'save_path': './data/downloadables/feature_selection_files/feature_selected_meta.joblib'
         }
 
 
