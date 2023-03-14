@@ -178,7 +178,7 @@ def fs_toggle_show_conf_modal(n1, n2, is_open):
         State("fs-show-select-feat-modal", "is_open")
     ],
 )
-def fs_toggle_show_conf_modal(n1, n2, is_open):
+def fs_toggle_show_select_feat_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open

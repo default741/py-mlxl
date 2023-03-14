@@ -246,7 +246,7 @@ def fs_upload_raw_data(file_content, use_dt_data_bool, file_name):
         date_uploaded = dt.datetime.now().strftime('%d %B, %Y %H:%M:%S')
         previous_file = f'transformed_data_v{ml_config.dt_current_version - 0.1}.csv'
 
-        pd.read_csv(f'./data/processed/{previous_file}').to_csv(
+        pd.read_csv(f'./data/downloadables/data_transform_files/{previous_file}').to_csv(
             f'./data/raw/{previous_file}', index=False)
 
         return html.Div([

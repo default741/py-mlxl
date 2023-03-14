@@ -15,6 +15,10 @@ class MLXL_Config:
         self._fs_serial_number = 1
         self._fs_initial_status = 'Initialization'
 
+        self._bm_current_version = 0.0
+        self._bm_serial_number = 1
+        self._bm_initial_status = 'Initialization'
+
     @property
     def status(self) -> pd.DataFrame:
         return self._status
@@ -72,6 +76,32 @@ class MLXL_Config:
     @fs_initial_status.setter
     def fs_initial_status(self, status: str) -> None:
         self._fs_initial_status = status
+
+    # ------------------------- FEATURE SELECTION -------------------------
+
+    @property
+    def bm_current_version(self) -> float:
+        return self._bm_current_version
+
+    @bm_current_version.setter
+    def bm_current_version(self, version: float) -> None:
+        self._bm_current_version = version
+
+    @property
+    def bm_serial_number(self) -> int:
+        return self._bm_serial_number
+
+    @bm_serial_number.setter
+    def bm_serial_number(self, serial_number: int) -> None:
+        self._bm_serial_number = serial_number
+
+    @property
+    def bm_initial_status(self) -> str:
+        return self._bm_initial_status
+
+    @bm_initial_status.setter
+    def bm_initial_status(self, status: str) -> None:
+        self._bm_initial_status = status
 
 
 class EDAToolConfig:
@@ -332,8 +362,8 @@ class BaselineModelingConfig:
 
             'kpi_sorting': [],
             'save_path': {
-                'report': './data/baseline_results_v1.xlsx',
-                'best_results': './data/baseline_best_results_v1.joblib'
+                'report': './data/downloadables/baseline_modeling_files/baseline_results.xlsx',
+                'best_results': './data/downloadables/baseline_modeling_files/baseline_best_results.joblib'
             }
         }
 
@@ -346,17 +376,25 @@ class BaselineModelingConfig:
             'renn (down)', 'tomek_links (down)', 'smote_tomek (combine)', 'smote_enn (combine)', 'all'
         ]
 
+        self._kpi_list = [
+            'accuracy', 'precision', 'recall', 'f1', 'f2', 'f0.5', 'roc_auc',
+        ]
+
         self._selected_features = pd.DataFrame()
         self._x_train = pd.DataFrame()
         self._y_train = pd.DataFrame()
 
     @property
-    def model_list(self) -> pd.DataFrame:
+    def model_list(self) -> list:
         return self._model_list
 
     @property
-    def sample_list(self) -> pd.DataFrame:
+    def sample_list(self) -> list:
         return self._sample_list
+
+    @property
+    def kpi_list(self) -> list:
+        return self._kpi_list
 
     @property
     def selected_features(self) -> pd.DataFrame:

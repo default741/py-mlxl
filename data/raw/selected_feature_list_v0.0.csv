@@ -1,0 +1,16 @@
+anova_f_value_selection-anova_f_value,mutual_info_classif_selection-mutual_info_classif,model_based_importance-random_forest,model_based_importance-xgboost,model_based_importance-catboost,model_based_importance-lightgbm
+topcoat color_BK05,topcoat color_BK10,Ambient Humidity,platform_W207,Paint Viscosity,Clearcoat Humidity
+topcoat color_BK08,topcoat color_BK21,Paint Pressure,platform_S101,Electrical Resistivity,Paint Viscosity
+topcoat color_BK34,platform_S101,Ambient Temperature,Clearcoat Temperature,platform_W207,Paint Pressure
+primer color_MK04,Topcoat Last Used,Clearcoat Humidity,Paint Viscosity,Clearcoat Temperature,Ambient Temperature
+topcoat color_BK25,Engine Run Number,Basecoat Humidity,Electrical Resistivity,Basecoat Humidity,Ambient Humidity
+primer color_MK05,topcoat color_BK34,Clearcoat Temperature,primer color_MK09,Clearcoat Humidity,Basecoat Humidity
+topcoat color_BK06,primer color_MK09,Paint Temperature,Basecoat Humidity,Ambient Humidity,Electrical Resistivity
+Basecoat Humidity,Primer Applied,Basecoat Temperature,Ambient Temperature,Paint Temperature,Basecoat Temperature
+topcoat color_BK33,topcoat color_BK01,Topcoat Last Used,Basecoat Temperature,Ambient Temperature,Paint Temperature
+primer color_PK02,Paint Pressure,Electrical Resistivity,Paint Temperature,Paint Pressure,Topcoat Last Used
+Clearcoat Humidity,topcoat color_BK05,Paint Viscosity,Primer Applied,Basecoat Temperature,Clearcoat Temperature
+topcoat color_BK32,platform_LTV,platform_W207,Ambient Humidity,platform_S101,platform_W207
+topcoat color_BK14,platform_MAHINDRAG4,platform_S101,Clearcoat Humidity,Topcoat Last Used,primer color_MK09
+topcoat color_BK07,platform_BLRPICKUP,Primer Applied,Paint Pressure,Primer Applied,platform_S101
+,topcoat color_BK26,primer color_MK09,Topcoat Last Used,primer color_MK09,Primer Applied

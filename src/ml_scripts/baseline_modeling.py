@@ -323,7 +323,7 @@ class BaselineModelling:
     def compile_baseline(
         self, file_path: str, balanced_data: bool, check_imbalance: bool, imbalance_class: int, imbalance_threshold: float,
         feature_set_list: list, model_list: list, sample_list: list, kpi_sorting: list,
-        save_path: dict, enable_voting: bool, voting_model_list: list, voting_sample_list: list = []
+        save_path: dict, enable_voting: bool, voting_model_list: list, voting_sample_list: list = [], **kwargs
     ) -> None:
         """Compiles all the Methods to run the Baseline Modelling.
 
@@ -339,11 +339,11 @@ class BaselineModelling:
         balanced = balanced_data
 
         X_train = _Read_Data_File._read_csv_type(
-            file_path=file_path['X_train'])
+            file_path=file_path['X_train'], params=kwargs)
         y_train = _Read_Data_File._read_csv_type(
-            file_path=file_path['y_train'])
+            file_path=file_path['y_train'], params=kwargs)
         selected_features = _Read_Data_File._read_csv_type(
-            file_path=file_path['selected_features'])
+            file_path=file_path['selected_feature'], params=kwargs)
 
         feature_set_list = list(
             selected_features.columns) if 'all' in feature_set_list else feature_set_list
